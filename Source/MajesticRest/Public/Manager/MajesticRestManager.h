@@ -59,7 +59,8 @@ private:
 	FString JsonResponse;
 };
 
-DECLARE_DELEGATE_TwoParams(FMajesticRestCallback, FMajesticRestResponse* /*Response*/, FMajesticRestError* /*Error*/);
+DECLARE_DELEGATE_TwoParams(FMajesticRestCallback, const FMajesticRestResponse* /*Response*/,
+                           const FMajesticRestError* /*Error*/);
 
 /**
  * Rest API manager.
@@ -71,8 +72,7 @@ class MAJESTICREST_API UMajesticRestManager : public UEngineSubsystem
 
 public:
 	static UMajesticRestManager* Get();
-	template <typename InStructType>
-	int32 MakeRestCall(FString Name, InStructType* Body, FMajesticRestCallback& Callback);
+	int32 MakeRestCall(FString Name, const UStruct* BodyDefinition, const void* Body, FMajesticRestCallback& Callback);
 
 protected:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;

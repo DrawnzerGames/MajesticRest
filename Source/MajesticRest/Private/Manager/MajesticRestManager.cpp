@@ -11,8 +11,8 @@ UMajesticRestManager* UMajesticRestManager::Get()
 	return Manager;
 }
 
-template <typename InStructType>
-int32 UMajesticRestManager::MakeRestCall(FString Name, InStructType* Body, FMajesticRestCallback& Callback)
+int32 UMajesticRestManager::MakeRestCall(FString Name, const UStruct* BodyDefinition, const void* Body,
+                                         FMajesticRestCallback& Callback)
 {
 	for (const auto& Calls : Config->RestCalls)
 	{
@@ -23,10 +23,10 @@ int32 UMajesticRestManager::MakeRestCall(FString Name, InStructType* Body, FMaje
 			Request->SetVerb(Calls.Method);
 			Request->SetHeader("Content-Type", Calls.ContentType);
 			Request->SetURL(Config->BaseUrls[0].Url + Calls.Uri);
-			if (Calls.Method.Equals("POST") && Body != nullptr)
+			if (Calls.Method.Equals("POST") && Body != nullptr && BodyDefinition != nullptr)
 			{
 				FString StringBody = "";
-				FJsonObjectConverter::UStructToJsonObjectString(Body, StringBody);
+				FJsonObjectConverter::UStructToJsonObjectString(BodyDefinition, Body, StringBody);
 				Request->SetContentAsString(StringBody);
 			}
 
@@ -38,13 +38,13 @@ int32 UMajesticRestManager::MakeRestCall(FString Name, InStructType* Body, FMaje
 			       {
 				       if (bSuccessfully)
 				       {
-					       FMajesticRestResponse* RestResponse = new
+					       const FMajesticRestResponse* RestResponse = new
 						       FMajesticRestResponse(CurrentRequest, Response->GetContentAsString());
 					       Callback.Execute(RestResponse, nullptr);
 				       }
 				       else
 				       {
-					       FMajesticRestError* Error = new FMajesticRestError(CurrentRequest, "");
+					       const FMajesticRestError* Error = new FMajesticRestError(CurrentRequest, "");
 					       Callback.Execute(nullptr, Error);
 				       }
 			       });
