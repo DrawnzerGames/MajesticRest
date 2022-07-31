@@ -11,8 +11,7 @@ UMajesticRestManager* UMajesticRestManager::Get()
 	return Manager;
 }
 
-int32 UMajesticRestManager::MakeRestCall(FString Name, const UStruct* BodyDefinition, const void* Body,
-                                         FMajesticRestCallback& Callback)
+int32 UMajesticRestManager::MakeRestCall(FString Name, const UStruct* BodyDefinition, const void* Body, FMajesticRestCallback& Callback)
 {
 	for (const auto& Calls : Config->RestCalls)
 	{
@@ -25,29 +24,34 @@ int32 UMajesticRestManager::MakeRestCall(FString Name, const UStruct* BodyDefini
 			Request->SetURL(Config->BaseUrls[0].Url + Calls.Uri);
 			if (Calls.Method.Equals("POST") && Body != nullptr && BodyDefinition != nullptr)
 			{
-				FString StringBody = "";
-				FJsonObjectConverter::UStructToJsonObjectString(BodyDefinition, Body, StringBody);
-				Request->SetContentAsString(StringBody);
+				if (Calls.ContentType.Equals("application/x-www-form-urlencoded"))
+				{
+					// Must go as key/value.
+					const auto FormData = (struct FMajesticFormData*)Body;
+					Request->SetContentAsString(FormData->GetFormData());
+				}
+				else
+				{
+					FString StringBody = "";
+					FJsonObjectConverter::UStructToJsonObjectString(BodyDefinition, Body, StringBody);
+					Request->SetContentAsString(StringBody);
+				}
 			}
 
 			const auto CurrentRequest = RequestCount++;
 			Request->OnProcessRequestComplete()
-			       .BindLambda([CurrentRequest, Callback](FHttpRequestPtr Request,
-			                                              FHttpResponsePtr Response,
-			                                              bool bSuccessfully) mutable
+			       .BindLambda([CurrentRequest, Callback](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccessfully) mutable
 			       {
 				       if (bSuccessfully)
 				       {
 					       if (Response->GetResponseCode() >= 200 && Response->GetResponseCode() < 300)
 					       {
-						       FMajesticRestResponse* RestResponse = new
-							       FMajesticRestResponse(CurrentRequest, Response->GetContentAsString());
+						       FMajesticRestResponse* RestResponse = new FMajesticRestResponse(CurrentRequest, Response->GetContentAsString());
 						       Callback.Execute(RestResponse, nullptr);
 					       }
 					       else
 					       {
-						       FMajesticRestError* Error = new FMajesticRestError(
-							       CurrentRequest, Response->GetContentAsString());
+						       FMajesticRestError* Error = new FMajesticRestError(CurrentRequest, Response->GetContentAsString());
 						       Callback.Execute(nullptr, Error);
 					       }
 				       }

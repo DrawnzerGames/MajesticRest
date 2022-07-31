@@ -52,9 +52,45 @@ struct FMajesticRestError
 	{
 	}
 
+	template <typename OutStructType>
+	void GetResponse(OutStructType& Out)
+	{
+		FJsonObjectConverter::JsonObjectStringToUStruct(JsonResponse, &Out);
+	}
+
 	int32 RequestId;
 private:
 	FString JsonResponse;
+};
+
+USTRUCT()
+struct FMajesticFormData
+{
+	GENERATED_BODY()
+
+	void AddKeyValue(FString InKey, FString InValue)
+	{
+		Key.Add(InKey);
+		Value.Add(InValue);
+	}
+
+	FString GetFormData()
+	{
+		FString Content = "";
+		for (int i = 0; i < Key.Num(); ++i)
+		{
+			if (i > 0)
+			{
+				Content = Content + "&";
+			}
+			Content = Content + Key[i] + "=" + Value[i];
+		}
+		return Content;
+	}
+
+private:
+	TArray<FString> Key;
+	TArray<FString> Value;
 };
 
 DECLARE_DELEGATE_TwoParams(FMajesticRestCallback, FMajesticRestResponse* /*Response*/, FMajesticRestError* /*Error*/);
