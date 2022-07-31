@@ -38,9 +38,18 @@ int32 UMajesticRestManager::MakeRestCall(FString Name, const UStruct* BodyDefini
 			       {
 				       if (bSuccessfully)
 				       {
-					       const FMajesticRestResponse* RestResponse = new
-						       FMajesticRestResponse(CurrentRequest, Response->GetContentAsString());
-					       Callback.Execute(RestResponse, nullptr);
+					       if (Response->GetResponseCode() >= 200 && Response->GetResponseCode() < 300)
+					       {
+						       const FMajesticRestResponse* RestResponse = new
+							       FMajesticRestResponse(CurrentRequest, Response->GetContentAsString());
+						       Callback.Execute(RestResponse, nullptr);
+					       }
+					       else
+					       {
+						       const FMajesticRestError* Error = new FMajesticRestError(
+							       CurrentRequest, Response->GetContentAsString());
+						       Callback.Execute(nullptr, Error);
+					       }
 				       }
 				       else
 				       {
