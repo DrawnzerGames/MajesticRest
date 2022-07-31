@@ -22,11 +22,9 @@ struct FMajesticRestResponse
 	int32 RequestId;
 
 	template <typename OutStructType>
-	OutStructType GetResponse()
+	void GetResponse(OutStructType& Out)
 	{
-		OutStructType Out;
 		FJsonObjectConverter::JsonObjectStringToUStruct(JsonResponse, &Out);
-		return Out;
 	}
 
 	template <typename OutStructType>
@@ -59,8 +57,7 @@ private:
 	FString JsonResponse;
 };
 
-DECLARE_DELEGATE_TwoParams(FMajesticRestCallback, const FMajesticRestResponse* /*Response*/,
-                           const FMajesticRestError* /*Error*/);
+DECLARE_DELEGATE_TwoParams(FMajesticRestCallback, FMajesticRestResponse* /*Response*/, FMajesticRestError* /*Error*/);
 
 /**
  * Rest API manager.

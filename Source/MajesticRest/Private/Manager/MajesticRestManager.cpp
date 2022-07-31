@@ -40,20 +40,20 @@ int32 UMajesticRestManager::MakeRestCall(FString Name, const UStruct* BodyDefini
 				       {
 					       if (Response->GetResponseCode() >= 200 && Response->GetResponseCode() < 300)
 					       {
-						       const FMajesticRestResponse* RestResponse = new
+						       FMajesticRestResponse* RestResponse = new
 							       FMajesticRestResponse(CurrentRequest, Response->GetContentAsString());
 						       Callback.Execute(RestResponse, nullptr);
 					       }
 					       else
 					       {
-						       const FMajesticRestError* Error = new FMajesticRestError(
+						       FMajesticRestError* Error = new FMajesticRestError(
 							       CurrentRequest, Response->GetContentAsString());
 						       Callback.Execute(nullptr, Error);
 					       }
 				       }
 				       else
 				       {
-					       const FMajesticRestError* Error = new FMajesticRestError(CurrentRequest, "");
+					       FMajesticRestError* Error = new FMajesticRestError(CurrentRequest, "");
 					       Callback.Execute(nullptr, Error);
 				       }
 			       });
